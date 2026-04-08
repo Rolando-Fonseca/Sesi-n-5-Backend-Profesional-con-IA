@@ -1,0 +1,685 @@
+{
+  "info": {
+    "_postman_id": "restaurants-api-collection",
+    "name": "Restaurants Backend API - V1",
+    "description": "Colección Postman completa para testear endpoints de restaurantes, menús y reservas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345678"
+  },
+  "item": [
+    {
+      "name": "Environment Setup",
+      "item": [
+        {
+          "name": "Get Auth Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.environment.set('accessToken', jsonData.accessToken);",
+                  "  pm.environment.set('userId', jsonData.user.id);",
+                  "  pm.environment.set('refreshToken', jsonData.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "Login Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Password123!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/v1/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NjBhYzdjOWY0ZWU1ZjAwMWI3ZDkzYTEiLCJlbWFpbCI6ImN1c3RvbWVyQGV4YW1wbGUuY29tIiwicm9sZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzEyNTczNjAwLCJleHAiOjE3MTI1NzcyMDB9.xyz\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NjBhYzdjOWY0ZWU1ZjAwMWI3ZDkzYTEiLCJpYXQiOjE3MTI1NzM2MDB9.xyz\",\n    \"user\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n      \"email\": \"customer@example.com\",\n      \"firstName\": \"Juan\",\n      \"lastName\": \"Pérez\",\n      \"role\": \"CUSTOMER\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "item": [
+        {
+          "name": "List Restaurants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has data array', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each restaurant has required fields', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  jsonData.data.forEach(function(restaurant) {",
+                  "    pm.expect(restaurant).to.have.property('id');",
+                  "    pm.expect(restaurant).to.have.property('name');",
+                  "    pm.expect(restaurant).to.have.property('email');",
+                  "  });",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.length > 0) {",
+                  "  pm.environment.set('restaurantId', pm.response.json().data[0].id);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Variables por defecto si no existen",
+                  "if (!pm.environment.get('baseUrl')) {",
+                  "  pm.environment.set('baseUrl', 'http://localhost:3000');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/restaurants?limit=10&offset=0&search=&sortBy=name&sortOrder=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "restaurants"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/restaurants?limit=10&offset=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "restaurants"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Restaurants retrieved successfully\",\n  \"data\": [\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d93b1\",\n      \"name\": \"Pizzeria Italia\",\n      \"description\": \"Autèntica pizzeria italiana con horno de leña\",\n      \"email\": \"info@pizzeriaitalia.com\",\n      \"phone\": \"+51912345678\",\n      \"rating\": 4.5,\n      \"isActive\": true,\n      \"createdAt\": \"2024-04-08T10:30:00Z\"\n    },\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d93b2\",\n      \"name\": \"Nikkei Fusion\",\n      \"description\": \"Cocina peruana-japonesa de autor\",\n      \"email\": \"info@nikkeifusion.com\",\n      \"phone\": \"+51998765432\",\n      \"rating\": 4.8,\n      \"isActive\": true,\n      \"createdAt\": \"2024-04-07T14:20:00Z\"\n    },\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d93b3\",\n      \"name\": \"Steakhouse Premium\",\n      \"description\": \"Cortes premium de carne en ambiente elegante\",\n      \"email\": \"info@steakhouseprm.com\",\n      \"phone\": \"+51987654321\",\n      \"rating\": 4.6,\n      \"isActive\": true,\n      \"createdAt\": \"2024-04-05T09:15:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 3,\n    \"limit\": 10,\n    \"offset\": 0,\n    \"pages\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Restaurant Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Restaurant has all required fields', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data).to.have.property('name');",
+                  "  pm.expect(jsonData.data).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/restaurants/{{restaurantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "restaurants", "{{restaurantId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Details Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/restaurants/660ac7c9f4ee5f001b7d93b1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "restaurants", "660ac7c9f4ee5f001b7d93b1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Restaurant retrieved successfully\",\n  \"data\": {\n    \"id\": \"660ac7c9f4ee5f001b7d93b1\",\n    \"name\": \"Pizzeria Italia\",\n    \"description\": \"Autèntica pizzeria italiana con horno de leña\",\n    \"cuisineType\": \"Italian\",\n    \"email\": \"info@pizzeriaitalia.com\",\n    \"phone\": \"+51912345678\",\n    \"websiteUrl\": \"https://www.pizzeriaitalia.com\",\n    \"rating\": 4.5,\n    \"isActive\": true,\n    \"locations\": [\n      {\n        \"id\": \"660ac7c9f4ee5f001b7d94a1\",\n        \"address\": \"Av. La Paz 123\",\n        \"city\": \"Lima\",\n        \"state\": \"Lima\",\n        \"postalCode\": \"15001\",\n        \"country\": \"Peru\",\n        \"latitude\": -12.0931,\n        \"longitude\": -77.0197,\n        \"isPrimary\": true,\n        \"openingTime\": \"11:00\",\n        \"closingTime\": \"23:00\"\n      }\n    ],\n    \"categories\": [\n      {\n        \"id\": \"660ac7c9f4ee5f001b7d94b1\",\n        \"name\": \"Pizzas Clasicas\",\n        \"createdAt\": \"2024-04-08T10:30:00Z\"\n      },\n      {\n        \"id\": \"660ac7c9f4ee5f001b7d94b2\",\n        \"name\": \"Bebidas\",\n        \"createdAt\": \"2024-04-08T10:30:00Z\"\n      }\n    ],\n    \"createdAt\": \"2024-04-08T10:30:00Z\",\n    \"updatedAt\": \"2024-04-08T10:30:00Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Get Restaurant Menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Menu has categories array', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each category has dishes', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  jsonData.data.forEach(function(category) {",
+                  "    pm.expect(category).to.have.property('id');",
+                  "    pm.expect(category).to.have.property('name');",
+                  "    pm.expect(category).to.have.property('dishes');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/restaurants/{{restaurantId}}/menu",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "restaurants", "{{restaurantId}}", "menu"]
+            }
+          },
+          "response": [
+            {
+              "name": "Menu Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/restaurants/660ac7c9f4ee5f001b7d93b1/menu",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "restaurants", "660ac7c9f4ee5f001b7d93b1", "menu"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Menu retrieved successfully\",\n  \"data\": [\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d94b1\",\n      \"name\": \"Pizzas Clasicas\",\n      \"description\": \"Las mejores pizzas italianas tradicionales\",\n      \"displayOrder\": 1,\n      \"dishes\": [\n        {\n          \"id\": \"660ac7c9f4ee5f001b7d94c1\",\n          \"name\": \"Margherita\",\n          \"description\": \"Queso mozzarella, tomate fresco y albahaca\",\n          \"price\": 28.50,\n          \"imageUrl\": \"https://cdn.example.com/pizzas/margherita.jpg\",\n          \"preparationTime\": 15,\n          \"isAvailable\": true,\n          \"ingredients\": \"Mozzarella, tomate, albahaca, aceite oliva\",\n          \"allergens\": \"Gluten, Lactosa\"\n        },\n        {\n          \"id\": \"660ac7c9f4ee5f001b7d94c2\",\n          \"name\": \"Pepperoni\",\n          \"description\": \"Mozzarella, salsa de tomate y pepperoni crujiente\",\n          \"price\": 32.00,\n          \"imageUrl\": \"https://cdn.example.com/pizzas/pepperoni.jpg\",\n          \"preparationTime\": 15,\n          \"isAvailable\": true,\n          \"ingredients\": \"Mozzarella, salsa tomate, pepperoni, aceite oliva\",\n          \"allergens\": \"Gluten, Lactosa, Carnes procesadas\"\n        },\n        {\n          \"id\": \"660ac7c9f4ee5f001b7d94c3\",\n          \"name\": \"Cuatro Quesos\",\n          \"description\": \"Mozzarella, parmesano, gorgonzola, ricotta\",\n          \"price\": 35.50,\n          \"imageUrl\": \"https://cdn.example.com/pizzas/quattro.jpg\",\n          \"preparationTime\": 18,\n          \"isAvailable\": true,\n          \"ingredients\": \"Mozzarella, parmesano, gorgonzola, ricotta\",\n          \"allergens\": \"Gluten, Lactosa\"\n        }\n      ]\n    },\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d94b2\",\n      \"name\": \"Bebidas\",\n      \"description\": \"Refrescos, cervezas y vinos\",\n      \"displayOrder\": 2,\n      \"dishes\": [\n        {\n          \"id\": \"660ac7c9f4ee5f001b7d94c4\",\n          \"name\": \"Coca-Cola 350ml\",\n          \"description\": \"Bebida refrescante\",\n          \"price\": 3.50,\n          \"imageUrl\": \"https://cdn.example.com/drinks/coke.jpg\",\n          \"preparationTime\": 0,\n          \"isAvailable\": true,\n          \"ingredients\": \"Agua carbonatada, azúcar, caramelo\",\n          \"allergens\": \"Cafeína\"\n        },\n        {\n          \"id\": \"660ac7c9f4ee5f001b7d94c5\",\n          \"name\": \"Vino Tinto Reserva\",\n          \"description\": \"Vino tinto de la región\",\n          \"price\": 45.00,\n          \"imageUrl\": \"https://cdn.example.com/drinks/wine.jpg\",\n          \"preparationTime\": 0,\n          \"isAvailable\": true,\n          \"ingredients\": \"Uva tinta\",\n          \"allergens\": \"Sulfitos\"\n        }\n      ]\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "Create Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has reservation id', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.environment.set('reservationId', jsonData.data.id);",
+                  "});",
+                  "",
+                  "pm.test('Reservation has correct status', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.status).to.equal('CONFIRMED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableId\": \"660ac7c9f4ee5f001b7d95a1\",\n  \"reservationDate\": \"2024-04-15\",\n  \"reservationTime\": \"19:30\",\n  \"guestCount\": 4,\n  \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reservations"]
+            }
+          },
+          "response": [
+            {
+              "name": "Create Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tableId\": \"660ac7c9f4ee5f001b7d95a1\",\n  \"reservationDate\": \"2024-04-15\",\n  \"reservationTime\": \"19:30\",\n  \"guestCount\": 4,\n  \"specialRequests\": \"Mesa cerca de la ventana\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reservations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "reservations"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 201,\n  \"message\": \"Reservation created successfully\",\n  \"data\": {\n    \"id\": \"660ac7c9f4ee5f001b7d96a1\",\n    \"user\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n      \"email\": \"customer@example.com\",\n      \"firstName\": \"Juan\",\n      \"lastName\": \"Pérez\"\n    },\n    \"table\": {\n      \"id\": \"660ac7c9f4ee5f001b7d95a1\",\n      \"number\": \"5\",\n      \"capacity\": 4,\n      \"status\": \"RESERVED\"\n    },\n    \"reservationDate\": \"2024-04-15\",\n    \"reservationTime\": \"19:30\",\n    \"guestCount\": 4,\n    \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa\",\n    \"status\": \"CONFIRMED\",\n    \"createdAt\": \"2024-04-08T15:30:00Z\",\n    \"updatedAt\": \"2024-04-08T15:30:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Error - Table Not Available",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tableId\": \"occupied-table\",\n  \"reservationDate\": \"2024-04-15\",\n  \"reservationTime\": \"19:30\",\n  \"guestCount\": 4\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reservations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "reservations"]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 409,\n  \"error\": \"TABLE_NOT_AVAILABLE\",\n  \"message\": \"Table is not available at the specified time\",\n  \"details\": {\n    \"tableId\": \"occupied-table\",\n    \"reason\": \"Table is occupied at 19:30 on 2024-04-15\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Reservations List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has reservations array', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/reservations?limit=10&offset=0&status=CONFIRMED",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reservations"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reservations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "reservations"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Reservations retrieved successfully\",\n  \"data\": [\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d96a1\",\n      \"user\": {\n        \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n        \"email\": \"customer@example.com\",\n        \"firstName\": \"Juan\",\n        \"lastName\": \"Pérez\"\n      },\n      \"table\": {\n        \"id\": \"660ac7c9f4ee5f001b7d95a1\",\n        \"number\": \"5\",\n        \"capacity\": 4,\n        \"status\": \"RESERVED\"\n      },\n      \"restaurant\": {\n        \"id\": \"660ac7c9f4ee5f001b7d93b1\",\n        \"name\": \"Pizzeria Italia\"\n      },\n      \"reservationDate\": \"2024-04-15\",\n      \"reservationTime\": \"19:30\",\n      \"guestCount\": 4,\n      \"specialRequests\": \"Mesa cerca de la ventana\",\n      \"status\": \"CONFIRMED\",\n      \"createdAt\": \"2024-04-08T15:30:00Z\"\n    },\n    {\n      \"id\": \"660ac7c9f4ee5f001b7d96a2\",\n      \"user\": {\n        \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n        \"email\": \"customer@example.com\",\n        \"firstName\": \"Juan\",\n        \"lastName\": \"Pérez\"\n      },\n      \"table\": {\n        \"id\": \"660ac7c9f4ee5f001b7d95a2\",\n        \"number\": \"8\",\n        \"capacity\": 6,\n        \"status\": \"RESERVED\"\n      },\n      \"restaurant\": {\n        \"id\": \"660ac7c9f4ee5f001b7d93b2\",\n        \"name\": \"Nikkei Fusion\"\n      },\n      \"reservationDate\": \"2024-04-16\",\n      \"reservationTime\": \"20:00\",\n      \"guestCount\": 6,\n      \"specialRequests\": \"Alérgico a camarones\",\n      \"status\": \"CONFIRMED\",\n      \"createdAt\": \"2024-04-07T14:20:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 2,\n    \"limit\": 10,\n    \"offset\": 0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Reservation Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Reservation has all details', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data).to.have.property('status');",
+                  "  pm.expect(jsonData.data).to.have.property('table');",
+                  "  pm.expect(jsonData.data).to.have.property('restaurant');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/reservations/{{reservationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reservations", "{{reservationId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Details Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reservations/660ac7c9f4ee5f001b7d96a1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "reservations", "660ac7c9f4ee5f001b7d96a1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Reservation retrieved successfully\",\n  \"data\": {\n    \"id\": \"660ac7c9f4ee5f001b7d96a1\",\n    \"user\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n      \"email\": \"customer@example.com\",\n      \"firstName\": \"Juan\",\n      \"lastName\": \"Pérez\",\n      \"phone\": \"+51912345678\"\n    },\n    \"table\": {\n      \"id\": \"660ac7c9f4ee5f001b7d95a1\",\n      \"number\": \"5\",\n      \"capacity\": 4,\n      \"status\": \"RESERVED\"\n    },\n    \"restaurant\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93b1\",\n      \"name\": \"Pizzeria Italia\",\n      \"phone\": \"+51912345678\"\n    },\n    \"location\": {\n      \"id\": \"660ac7c9f4ee5f001b7d94a1\",\n      \"address\": \"Av. La Paz 123\",\n      \"city\": \"Lima\"\n    },\n    \"reservationDate\": \"2024-04-15\",\n    \"reservationTime\": \"19:30\",\n    \"guestCount\": 4,\n    \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa\",\n    \"status\": \"CONFIRMED\",\n    \"createdAt\": \"2024-04-08T15:30:00Z\",\n    \"updatedAt\": \"2024-04-08T15:30:00Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Update should reflect new data', function() {",
+                  "  let jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.guestCount).to.equal(5);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationDate\": \"2024-04-16\",\n  \"reservationTime\": \"20:00\",\n  \"guestCount\": 5,\n  \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa, sin picante\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/reservations/{{reservationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reservations", "{{reservationId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Update Success",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reservationDate\": \"2024-04-16\",\n  \"reservationTime\": \"20:00\",\n  \"guestCount\": 5,\n  \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa, sin picante\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reservations/660ac7c9f4ee5f001b7d96a1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["v1", "reservations", "660ac7c9f4ee5f001b7d96a1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"statusCode\": 200,\n  \"message\": \"Reservation updated successfully\",\n  \"data\": {\n    \"id\": \"660ac7c9f4ee5f001b7d96a1\",\n    \"user\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93a1\",\n      \"email\": \"customer@example.com\",\n      \"firstName\": \"Juan\",\n      \"lastName\": \"Pérez\"\n    },\n    \"table\": {\n      \"id\": \"660ac7c9f4ee5f001b7d95a2\",\n      \"number\": \"8\",\n      \"capacity\": 6,\n      \"status\": \"RESERVED\"\n    },\n    \"restaurant\": {\n      \"id\": \"660ac7c9f4ee5f001b7d93b1\",\n      \"name\": \"Pizzeria Italia\"\n    },\n    \"reservationDate\": \"2024-04-16\",\n    \"reservationTime\": \"20:00\",\n    \"guestCount\": 5,\n    \"specialRequests\": \"Mesa cerca de la ventana, cumpleaños de mi esposa, sin picante\",\n    \"status\": \"CONFIRMED\",\n    \"createdAt\": \"2024-04-08T15:30:00Z\",\n    \"updatedAt\": \"2024-04-08T16:15:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Error - Guest Count Exceeds Capacity",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",\n                  \"raw\": \"{\n  \\\"guestCount\\\": 10\n}\"\n                },\n                \"url\": {\n                  \"raw\": \"{{baseUrl}}/v1/reservations/660ac7c9f4ee5f001b7d96a1\",\n                  \"host\": [\"{{baseUrl}}\"],\n                  \"path\": [\"v1\", \"reservations\", \"660ac7c9f4ee5f001b7d96a1\"]\n                }\n              },\n              \"status\": \"Bad Request\",\n              \"code\": 400,\n              \"_postman_previewlanguage\": \"json\",\n              \"header\": [\n                {\n                  \"key\": \"Content-Type\",\n                  \"value\": \"application/json\"\n                }\n              ],\n              \"body\": \"{\n  \\\"statusCode\\\": 400,\n  \\\"error\\\": \\\"INVALID_GUEST_COUNT\\\",\n  \\\"message\\\": \\\"Guest count exceeds table capacity\\\",\n  \\\"details\\\": {\n    \\\"guestCount\\\": 10,\n    \\\"tableCapacity\\\": 4,\n    \\\"reason\\\": \\\"Maximum 4 guests for table 5\\\"\n  }\n}\"\n            }\n          ]\n        },\n        {\n          \"name\": \"Delete Reservation\",\n          \"event\": [\n            {\n              \"listen\": \"test\",\n              \"script\": {\n                \"exec\": [\n                  \"pm.test('Status code is 200', function() {\",\n                  \"  pm.response.to.have.status(200);\",\n                  \"});\",\n                  \"\",\n                  \"pm.test('Reservation status is CANCELLED', function() {\",\n                  \"  let jsonData = pm.response.json();\",\n                  \"  pm.expect(jsonData.data.status).to.equal('CANCELLED');\",\n                  \"});\"\n                ]\n              }\n            }\n          ],\n          \"request\": {\n            \"method\": \"DELETE\",\n            \"header\": [\n              {\n                \"key\": \"Authorization\",\n                \"value\": \"Bearer {{accessToken}}\"\n              }\n            ],\n            \"url\": {\n              \"raw\": \"{{baseUrl}}/v1/reservations/{{reservationId}}\",\n              \"host\": [\"{{baseUrl}}\"],\n              \"path\": [\"v1\", \"reservations\", \"{{reservationId}}\"]\n            }\n          },\n          \"response\": [\n            {\n              \"name\": \"Delete Success\",\n              \"originalRequest\": {\n                \"method\": \"DELETE\",\n                \"header\": [\n                  {\n                    \"key\": \"Authorization\",\n                    \"value\": \"Bearer {{accessToken}}\"\n                  }\n                ],\n                \"url\": {\n                  \"raw\": \"{{baseUrl}}/v1/reservations/660ac7c9f4ee5f001b7d96a1\",\n                  \"host\": [\"{{baseUrl}}\"],\n                  \"path\": [\"v1\", \"reservations\", \"660ac7c9f4ee5f001b7d96a1\"]\n                }\n              },\n              \"status\": \"OK\",\n              \"code\": 200,\n              \"_postman_previewlanguage\": \"json\",\n              \"header\": [\n                {\n                  \"key\": \"Content-Type\",\n                  \"value\": \"application/json\"\n                }\n              ],\n              \"body\": \"{\n  \\\"statusCode\\\": 200,\n  \\\"message\\\": \\\"Reservation cancelled successfully\\\",\n  \\\"data\\\": {\n    \\\"id\\\": \\\"660ac7c9f4ee5f001b7d96a1\\\",\n    \\\"user\\\": {\n      \\\"id\\\": \\\"660ac7c9f4ee5f001b7d93a1\\\",\n      \\\"email\\\": \\\"customer@example.com\\\",\n      \\\"firstName\\\": \\\"Juan\\\",\n      \\\"lastName\\\": \\\"Pérez\\\"\n    },\n    \\\"table\\\": {\n      \\\"id\\\": \\\"660ac7c9f4ee5f001b7d95a1\\\",\n      \\\"number\\\": \\\"5\\\",\n      \\\"capacity\\\": 4,\n      \\\"status\\\": \\\"AVAILABLE\\\"\n    },\n    \\\"restaurant\\\": {\n      \\\"id\\\": \\\"660ac7c9f4ee5f001b7d93b1\\\",\n      \\\"name\\\": \\\"Pizzeria Italia\\\"\n    },\n    \\\"reservationDate\\\": \\\"2024-04-15\\\",\n    \\\"reservationTime\\\": \\\"19:30\\\",\n    \\\"guestCount\\\": 4,\n    \\\"specialRequests\\\": \\\"Mesa cerca de la ventana\\\",\n    \\\"status\\\": \\\"CANCELLED\\\",\n    \\\"createdAt\\\": \\\"2024-04-08T15:30:00Z\\\",\n    \\\"updatedAt\\\": \\\"2024-04-08T16:45:00Z\\\"\n  }\n}\"\n            },\n            {\n              \"name\": \"Error - Already Cancelled\",\n              \"originalRequest\": {\n                \"method\": \"DELETE\",\n                \"header\": [\n                  {\n                    \"key\": \"Authorization\",\n                    \"value\": \"Bearer {{accessToken}}\"\n                  }\n                ],\n                \"url\": {\n                  \"raw\": \"{{baseUrl}}/v1/reservations/660ac7c9f4ee5f001b7d96a1\",\n                  \"host\": [\"{{baseUrl}}\"],\n                  \"path\": [\"v1\", \"reservations\", \"660ac7c9f4ee5f001b7d96a1\"]\n                }\n              },\n              \"status\": \"Bad Request\",\n              \"code\": 400,\n              \"_postman_previewlanguage\": \"json\",\n              \"header\": [\n                {\n                  \"key\": \"Content-Type\",\n                  \"value\": \"application/json\"\n                }\n              ],\n              \"body\": \"{\n  \\\"statusCode\\\": 400,\n  \\\"error\\\": \\\"INVALID_RESERVATION_STATUS\\\",\n  \\\"message\\\": \\\"Cannot cancel a reservation that is not confirmed or pending\\\",\n  \\\"details\\\": {\n    \\\"currentStatus\\\": \\\"CANCELLED\\\",\n    \\\"allowedStatuses\\\": [\\\"CONFIRMED\\\", \\\"PENDING\\\"]\n  }\n}\"\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"variable\": [\n    {\n      \"key\": \"baseUrl\",\n      \"value\": \"http://localhost:3000\",\n      \"type\": \"string\"\n    },\n    {\n      \"key\": \"accessToken\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    },\n    {\n      \"key\": \"refreshToken\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    },\n    {\n      \"key\": \"userId\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    },\n    {\n      \"key\": \"restaurantId\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    },\n    {\n      \"key\": \"reservationId\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    }\n  ]\n}\n
