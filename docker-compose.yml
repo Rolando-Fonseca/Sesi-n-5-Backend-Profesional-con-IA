@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: restaurants_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: restaurants_user
+      POSTGRES_PASSWORD: RestaurantsSecure123!@#
+      POSTGRES_DB: restaurants_dev
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - restaurants_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurants_user -d restaurants_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "max_connections=100"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: restaurants_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@restaurants.local
+      PGADMIN_DEFAULT_PASSWORD: AdminPassword123!@#
+    ports:
+      - "5050:80"
+    networks:
+      - restaurants_network
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  restaurants_network:
+    driver: bridge
