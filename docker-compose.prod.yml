@@ -1,0 +1,252 @@
+version: '3.8'
+
+# Production Docker Compose Configuration for Easypanel
+# 
+# This configuration is optimized for:
+# - Security (no default passwords exposed)
+# - Performance (resource limits, optimizations)
+# - Reliability (health checks, restart policies)
+# - Scalability (proper networking, volumes)
+# 
+# Usage in Easypanel: Easypanel typically manages containers individually,
+# but this file documents the expected stack setup.
+
+services:
+  # ========================================================================
+  # POSTGRESQL DATABASE SERVICE
+  # ========================================================================
+  # Note: In Easypanel, the database may be managed separately.
+  # If using Easypanel's managed PostgreSQL, skip this service and use
+  # the provided DATABASE_URL instead.
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: restaurants_db_prod
+    restart: unless-stopped
+    
+    # Environment Variables - MUST be customized
+    environment:
+      POSTGRES_USER: ${DB_USER:-restaurants_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ChangeThisPassword123!}
+      POSTGRES_DB: ${DB_NAME:-restaurants_prod}
+      
+      # PostgreSQL Configuration
+      POSTGRES_INITDB_ARGS: |
+        --encoding=UTF8 
+        --locale=en_US.UTF-8 
+        --max_connections=100
+        --shared_buffers=256MB
+        --effective_cache_size=512MB
+    
+    # Ports - Map to internal network only (Easypanel handles external)
+    expose:
+      - "5432"  # Only for internal network access
+    
+    # Persistent Data Volume
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    networks:
+      - restaurants_network
+    
+    # Health Check - Important for reliability
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-restaurants_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    
+    # Resource Limits - Prevent memory leaks
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ========================================================================
+  # EXPRESS/NESTJS APPLICATION SERVICE
+  # ========================================================================
+  
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    
+    container_name: restaurants_api_prod
+    restart: unless-stopped
+    
+    # Environment Variables - From .env.prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      
+      # Database Configuration
+      DATABASE_URL: ${DATABASE_URL}
+      
+      # JWT Secrets (MUST be set in Easypanel environment variables)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-1h}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      
+      # CORS
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+      # Application Info
+      APP_NAME: ${APP_NAME:-Restaurants API}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+    
+    # Port Exposure
+    ports:
+      - "3000:3000"  # Easypanel will configure external port
+    
+    networks:
+      - restaurants_network
+    
+    # Depends on database being healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    # Health Check - Critical for Easypanel management
+    healthcheck:
+      test: 
+        - "CMD"
+        - "curl"
+        - "-f"
+        - "http://localhost:3000/api/db-status"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Resource Limits - Prevent memory leaks
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    
+    # Logging Configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ========================================================================
+  # PGADMIN - DATABASE MANAGEMENT TOOL (Optional in Production)
+  # ========================================================================
+  # Remove this service in strict production to reduce resource usage
+  # Keep it only if you need web-based database administration
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: restaurants_pgadmin_prod
+    restart: unless-stopped
+    
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@restaurants.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-AdminPassword123!}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'True'
+      PGADMIN_CONFIG_COOKIE_DEFAULT_PATH: '/pgadmin'
+    
+    # Only expose internally or via Easypanel
+    expose:
+      - "80"
+    
+    networks:
+      - restaurants_network
+    
+    depends_on:
+      - postgres
+    
+    volumes:
+      - pgadmin_prod_data:/var/lib/pgadmin
+    
+    # Resource Limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+# ============================================================================
+# DATA PERSISTENCE
+# ============================================================================
+
+volumes:
+  postgres_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres  # Persist data locally
+  
+  pgadmin_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/pgadmin
+
+# ============================================================================
+# NETWORKING
+# ============================================================================
+
+networks:
+  restaurants_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# NOTES FOR EASYPANEL DEPLOYMENT
+# ============================================================================
+# 
+# 1. EASYPANEL TYPICALLY MANAGES:
+#    - Individual service deployment (you may not use this entire compose file)
+#    - Container networking and port mapping
+#    - Environment variable injection
+#    - Health checks and auto-restart
+#    - Scaling and load balancing
+#
+# 2. DATABASE OPTIONS IN EASYPANEL:
+#    Option A (Recommended): Use Easypanel's managed PostgreSQL service
+#    Option B: Deploy this postgres service via this compose file
+#    Option C: Use external managed database (AWS RDS, Google Cloud SQL, etc.)
+#
+# 3. ENVIRONMENT VARIABLE MANAGEMENT:
+#    In Easypanel Dashboard:
+#    - Settings → Environment Variables
+#    - Add variables from .env.prod
+#    - Easypanel will securely inject them
+#    - Support for variable references (e.g., ${DATABASE_URL})
+#
+# 4. DEPLOYMENT FLOW:
+#    1. Connect GitHub repository
+#    2. Set up environment variables
+#    3. Select Dockerfile as build method
+#    4. Configure health check endpoint
+#    5. Deploy and monitor
+#    6. Configure domain and SSL
+#    7. Set up backups and monitoring
+#
+# 5. MONITORING IN EASYPANEL:
+#    - Real-time logs
+#    - CPU, Memory, Network metrics
+#    - Deployment history and rollback capability
+#    - Alert configuration for thresholds
+#
+# For more details, see EASYPANEL_DEPLOYMENT.md

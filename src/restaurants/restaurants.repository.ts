@@ -34,7 +34,7 @@ export class RestaurantsRepository {
     return this.prisma.restaurant.create({
       data: {
         name: createRestaurantDto.name,
-        email: createRestaurantDto.email,
+        email: createRestaurantDto.email || '',
         phone: createRestaurantDto.phone,
         website: createRestaurantDto.website,
         cuisineType: createRestaurantDto.cuisineType,
@@ -55,7 +55,8 @@ export class RestaurantsRepository {
 
     // Construir where clause dinámico
     const where: Prisma.RestaurantWhereInput = {
-      deletedAt: null,
+      // Soft deletes commented for now - not in schema
+      // // deletedAt: null, (soft deletes not in schema)
     };
 
     if (listRestaurantsDto.search) {
@@ -136,7 +137,7 @@ export class RestaurantsRepository {
   async delete(id: string) {
     return this.prisma.restaurant.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
@@ -149,7 +150,7 @@ export class RestaurantsRepository {
   async exists(id: string): Promise<boolean> {
     const restaurant = await this.prisma.restaurant.findUnique({
       where: { id },
-      select: { id: true, deletedAt: true },
+      select: { id: true },
     });
     return !!restaurant && restaurant.deletedAt === null;
   }

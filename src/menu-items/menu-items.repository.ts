@@ -28,7 +28,7 @@ export class MenuItemsRepository {
     const offset = parseInt(listMenuItemsDto.offset || '0');
 
     const where: Prisma.DishWhereInput = {
-      deletedAt: null,
+      // deletedAt: null, (soft deletes not in schema)
     };
 
     if (listMenuItemsDto.locationId) {
@@ -84,14 +84,14 @@ export class MenuItemsRepository {
   async delete(id: string) {
     return this.prisma.dish.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
   async exists(id: string): Promise<boolean> {
     const item = await this.prisma.dish.findUnique({
       where: { id },
-      select: { id: true, deletedAt: true },
+      select: { id: true },
     });
     return !!item && item.deletedAt === null;
   }

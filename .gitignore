@@ -13,10 +13,12 @@ build/
 # Environment
 .env
 .env.local
+.env.prod
+.env.prod.bak
 .env.production.local
 .env.development.local
 .env.test.local
-# .env.example is committed
+# .env.example and .env.prod.example are committed
 
 # IDE
 .vscode/

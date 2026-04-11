@@ -30,7 +30,7 @@ export class BookingsRepository {
     const offset = parseInt(listBookingsDto.offset || '0');
 
     const where: Prisma.ReservationWhereInput = {
-      deletedAt: null,
+      // deletedAt: null, (soft deletes not in schema)
     };
 
     if (listBookingsDto.restaurantId) {
@@ -84,14 +84,14 @@ export class BookingsRepository {
   async delete(id: string) {
     return this.prisma.reservation.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
   async exists(id: string): Promise<boolean> {
     const booking = await this.prisma.reservation.findUnique({
       where: { id },
-      select: { id: true, deletedAt: true },
+      select: { id: true },
     });
     return !!booking && booking.deletedAt === null;
   }

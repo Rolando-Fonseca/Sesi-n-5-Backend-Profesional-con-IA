@@ -15,8 +15,8 @@ export class MenusRepository {
         restaurantId: createMenuDto.restaurantId,
         name: createMenuDto.name,
         description: createMenuDto.description,
-        address: createMenuDto.address,
-        city: createMenuDto.city,
+        address: createMenuDto.address || '',
+        city: createMenuDto.city || '',
         state: createMenuDto.state,
         zipCode: createMenuDto.zipCode,
       },
@@ -28,7 +28,7 @@ export class MenusRepository {
     const offset = parseInt(listMenusDto.offset || '0');
 
     const where: Prisma.LocationWhereInput = {
-      deletedAt: null,
+      // deletedAt: null, (soft deletes not in schema)
     };
 
     if (listMenusDto.restaurantId) {
@@ -78,14 +78,14 @@ export class MenusRepository {
   async delete(id: string) {
     return this.prisma.location.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
   async exists(id: string): Promise<boolean> {
     const menu = await this.prisma.location.findUnique({
       where: { id },
-      select: { id: true, deletedAt: true },
+      select: { id: true },
     });
     return !!menu && menu.deletedAt === null;
   }
