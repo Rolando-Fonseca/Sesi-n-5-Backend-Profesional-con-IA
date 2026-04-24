@@ -16,7 +16,19 @@ ARG APP_VERSION=1.0.0
 ARG APP_DESCRIPTION="Complete restaurant management REST API"
 ARG LOG_LEVEL=info
 
-# Pass build args as runtime env vars
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install
+
+COPY . .
+
+RUN npx prisma generate
+RUN rm -rf dist && npx nest build
+
+# Set runtime env vars AFTER build so npm install includes devDependencies
 ENV NODE_ENV=$NODE_ENV \
     PORT=$PORT \
     CORS_ORIGIN=$CORS_ORIGIN \
@@ -29,18 +41,6 @@ ENV NODE_ENV=$NODE_ENV \
     APP_VERSION=$APP_VERSION \
     APP_DESCRIPTION=$APP_DESCRIPTION \
     LOG_LEVEL=$LOG_LEVEL
-
-WORKDIR /app
-
-COPY package*.json ./
-COPY prisma ./prisma/
-
-RUN npm install
-
-COPY . .
-
-RUN npx prisma generate
-RUN rm -rf dist && npx nest build
 
 EXPOSE 3000
 
