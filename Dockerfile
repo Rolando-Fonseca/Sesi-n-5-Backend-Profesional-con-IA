@@ -22,11 +22,12 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 RUN npm install
+RUN npm install -g @nestjs/cli
 
 COPY . .
 
 RUN npx prisma generate
-RUN rm -rf dist && npx nest build
+RUN nest build
 
 # Set runtime env vars AFTER build so npm install includes devDependencies
 ENV NODE_ENV=$NODE_ENV \
