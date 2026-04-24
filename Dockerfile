@@ -2,6 +2,34 @@ FROM node:18-alpine
 
 RUN apk add --no-cache openssl
 
+# Build args from Easypanel
+ARG NODE_ENV=production
+ARG PORT=3000
+ARG CORS_ORIGIN=*
+ARG DATABASE_URL
+ARG JWT_SECRET
+ARG JWT_EXPIRATION=1h
+ARG JWT_REFRESH_SECRET
+ARG JWT_REFRESH_EXPIRATION=7d
+ARG APP_NAME="Restaurants API"
+ARG APP_VERSION=1.0.0
+ARG APP_DESCRIPTION="Complete restaurant management REST API"
+ARG LOG_LEVEL=info
+
+# Pass build args as runtime env vars
+ENV NODE_ENV=$NODE_ENV \
+    PORT=$PORT \
+    CORS_ORIGIN=$CORS_ORIGIN \
+    DATABASE_URL=$DATABASE_URL \
+    JWT_SECRET=$JWT_SECRET \
+    JWT_EXPIRATION=$JWT_EXPIRATION \
+    JWT_REFRESH_SECRET=$JWT_REFRESH_SECRET \
+    JWT_REFRESH_EXPIRATION=$JWT_REFRESH_EXPIRATION \
+    APP_NAME=$APP_NAME \
+    APP_VERSION=$APP_VERSION \
+    APP_DESCRIPTION=$APP_DESCRIPTION \
+    LOG_LEVEL=$LOG_LEVEL
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -16,4 +44,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:prod"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npm run start:prod"]
