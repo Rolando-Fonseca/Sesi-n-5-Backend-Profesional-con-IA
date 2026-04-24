@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+dist
+.git
+.github
+Docs
+.env
+.env.local
+.env.*.local
+test
+*.md
+!E2E_TESTING_GUIDE.md
+Postman_Collection.json
+docker-compose*.yml
+data
