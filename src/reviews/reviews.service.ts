@@ -43,7 +43,7 @@ export class ReviewsService {
 
   async findById(id: string) {
     const review = await this.reviewsRepository.findById(id);
-    if (!review || review.deletedAt) {
+    if (!review) {
       throw new NotFoundException(`Review with id ${id} not found`);
     }
     return {

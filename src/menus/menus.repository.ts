@@ -10,15 +10,11 @@ export class MenusRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(createMenuDto: CreateMenuDto) {
-    return this.prisma.location.create({
+    return this.prisma.category.create({
       data: {
         restaurantId: createMenuDto.restaurantId,
         name: createMenuDto.name,
         description: createMenuDto.description,
-        address: createMenuDto.address || '',
-        city: createMenuDto.city || '',
-        state: createMenuDto.state,
-        zipCode: createMenuDto.zipCode,
       },
     });
   }
@@ -27,9 +23,7 @@ export class MenusRepository {
     const limit = Math.min(parseInt(listMenusDto.limit || '10'), 100);
     const offset = parseInt(listMenusDto.offset || '0');
 
-    const where: Prisma.LocationWhereInput = {
-      // deletedAt: null, (soft deletes not in schema)
-    };
+    const where: Prisma.CategoryWhereInput = {};
 
     if (listMenusDto.restaurantId) {
       where.restaurantId = listMenusDto.restaurantId;
@@ -43,50 +37,47 @@ export class MenusRepository {
     }
 
     const [items, total] = await Promise.all([
-      this.prisma.location.findMany({
+      this.prisma.category.findMany({
         where,
         take: limit,
         skip: offset,
         include: { restaurant: true },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.location.count({ where }),
+      this.prisma.category.count({ where }),
     ]);
 
     return { items, total, limit, offset, pages: Math.ceil(total / limit) };
   }
 
   async findById(id: string) {
-    return this.prisma.location.findUnique({
+    return this.prisma.category.findUnique({
       where: { id },
       include: {
         restaurant: true,
-        dishes: {
-          where: { deletedAt: null },
-        },
+        dishes: true,
       },
     });
   }
 
   async update(id: string, updateMenuDto: UpdateMenuDto) {
-    return this.prisma.location.update({
+    return this.prisma.category.update({
       where: { id },
       data: updateMenuDto,
     });
   }
 
   async delete(id: string) {
-    return this.prisma.location.update({
+    return this.prisma.category.delete({
       where: { id },
-      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
   async exists(id: string): Promise<boolean> {
-    const menu = await this.prisma.location.findUnique({
+    const menu = await this.prisma.category.findUnique({
       where: { id },
       select: { id: true },
     });
-    return !!menu && menu.deletedAt === null;
+    return !!menu;
   }
 }

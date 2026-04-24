@@ -3,24 +3,23 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ListBookingsDto } from './dto/list-bookings.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, ReservationStatus } from '@prisma/client';
 
 @Injectable()
 export class BookingsRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(createBookingDto: CreateBookingDto) {
+    const reservationDate = new Date(createBookingDto.reservationDateTime);
     return this.prisma.reservation.create({
       data: {
-        restaurantId: createBookingDto.restaurantId,
         userId: createBookingDto.userId,
-        reservationDateTime: new Date(createBookingDto.reservationDateTime),
-        numberOfGuests: createBookingDto.numberOfGuests,
+        tableId: createBookingDto.restaurantId,
+        reservationDate,
+        reservationTime: reservationDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        guestCount: createBookingDto.numberOfGuests,
         specialRequests: createBookingDto.specialRequests,
-        guestName: createBookingDto.guestName,
-        guestPhone: createBookingDto.guestPhone,
-        guestEmail: createBookingDto.guestEmail,
-        status: 'pending',
+        status: ReservationStatus.CONFIRMED,
       },
     });
   }
@@ -29,23 +28,10 @@ export class BookingsRepository {
     const limit = Math.min(parseInt(listBookingsDto.limit || '10'), 100);
     const offset = parseInt(listBookingsDto.offset || '0');
 
-    const where: Prisma.ReservationWhereInput = {
-      // deletedAt: null, (soft deletes not in schema)
-    };
-
-    if (listBookingsDto.restaurantId) {
-      where.restaurantId = listBookingsDto.restaurantId;
-    }
+    const where: Prisma.ReservationWhereInput = {};
 
     if (listBookingsDto.userId) {
       where.userId = listBookingsDto.userId;
-    }
-
-    if (listBookingsDto.status) {
-      where.status = {
-        equals: listBookingsDto.status,
-        mode: 'insensitive',
-      };
     }
 
     const [items, total] = await Promise.all([
@@ -53,8 +39,8 @@ export class BookingsRepository {
         where,
         take: limit,
         skip: offset,
-        include: { restaurant: true, user: true },
-        orderBy: { reservationDateTime: 'desc' },
+        include: { table: true, user: true },
+        orderBy: { reservationDate: 'desc' },
       }),
       this.prisma.reservation.count({ where }),
     ]);
@@ -65,26 +51,42 @@ export class BookingsRepository {
   async findById(id: string) {
     return this.prisma.reservation.findUnique({
       where: { id },
-      include: { restaurant: true, user: true },
+      include: { table: true, user: true },
     });
   }
 
   async update(id: string, updateBookingDto: UpdateBookingDto) {
-    const updateData = { ...updateBookingDto };
+    const data: Prisma.ReservationUncheckedUpdateInput = {};
+
     if (updateBookingDto.reservationDateTime) {
-      updateData['reservationDateTime'] = new Date(updateBookingDto.reservationDateTime as any);
+      const date = new Date(updateBookingDto.reservationDateTime);
+      data.reservationDate = date;
+      data.reservationTime = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (updateBookingDto.specialRequests !== undefined) {
+      data.specialRequests = updateBookingDto.specialRequests;
+    }
+    if (updateBookingDto.numberOfGuests !== undefined) {
+      data.guestCount = updateBookingDto.numberOfGuests;
     }
 
     return this.prisma.reservation.update({
       where: { id },
-      data: updateData,
+      data,
+    });
+  }
+
+  async updateStatus(id: string, status: ReservationStatus) {
+    return this.prisma.reservation.update({
+      where: { id },
+      data: { status },
     });
   }
 
   async delete(id: string) {
     return this.prisma.reservation.update({
       where: { id },
-      data: { isAvailable: false }, // soft delete simulation
+      data: { status: ReservationStatus.CANCELLED },
     });
   }
 
@@ -93,6 +95,6 @@ export class BookingsRepository {
       where: { id },
       select: { id: true },
     });
-    return !!booking && booking.deletedAt === null;
+    return !!booking;
   }
 }

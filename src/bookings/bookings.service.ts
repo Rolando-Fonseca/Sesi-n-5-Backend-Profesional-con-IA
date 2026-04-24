@@ -3,6 +3,7 @@ import { BookingsRepository } from './bookings.repository';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ListBookingsDto } from './dto/list-bookings.dto';
+import { ReservationStatus } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
@@ -44,7 +45,7 @@ export class BookingsService {
 
   async findById(id: string) {
     const booking = await this.bookingsRepository.findById(id);
-    if (!booking || booking.deletedAt) {
+    if (!booking) {
       throw new NotFoundException(`Booking with id ${id} not found`);
     }
     return {
@@ -86,7 +87,7 @@ export class BookingsService {
       throw new NotFoundException(`Booking with id ${id} not found`);
     }
 
-    const booking = await this.bookingsRepository.update(id, { status: status as any });
+    const booking = await this.bookingsRepository.updateStatus(id, status as ReservationStatus);
     return {
       statusCode: 200,
       message: 'Booking status updated successfully',

@@ -12,13 +12,13 @@ export class MenuItemsRepository {
   async create(createMenuItemDto: CreateMenuItemDto) {
     return this.prisma.dish.create({
       data: {
-        locationId: createMenuItemDto.locationId,
+        categoryId: createMenuItemDto.locationId,
+        restaurantId: createMenuItemDto.locationId,
         name: createMenuItemDto.name,
         description: createMenuItemDto.description,
         price: createMenuItemDto.price,
-        category: createMenuItemDto.category,
-        availability: createMenuItemDto.availability || 'available',
         imageUrl: createMenuItemDto.imageUrl,
+        isAvailable: createMenuItemDto.availability !== 'unavailable',
       },
     });
   }
@@ -27,12 +27,10 @@ export class MenuItemsRepository {
     const limit = Math.min(parseInt(listMenuItemsDto.limit || '10'), 100);
     const offset = parseInt(listMenuItemsDto.offset || '0');
 
-    const where: Prisma.DishWhereInput = {
-      // deletedAt: null, (soft deletes not in schema)
-    };
+    const where: Prisma.DishWhereInput = {};
 
     if (listMenuItemsDto.locationId) {
-      where.locationId = listMenuItemsDto.locationId;
+      where.categoryId = listMenuItemsDto.locationId;
     }
 
     if (listMenuItemsDto.search) {
@@ -44,13 +42,12 @@ export class MenuItemsRepository {
 
     if (listMenuItemsDto.category) {
       where.category = {
-        equals: listMenuItemsDto.category,
-        mode: 'insensitive',
+        name: { equals: listMenuItemsDto.category, mode: 'insensitive' },
       };
     }
 
     if (listMenuItemsDto.availability) {
-      where.availability = listMenuItemsDto.availability;
+      where.isAvailable = listMenuItemsDto.availability !== 'unavailable';
     }
 
     const [items, total] = await Promise.all([
@@ -58,7 +55,7 @@ export class MenuItemsRepository {
         where,
         take: limit,
         skip: offset,
-        include: { location: true },
+        include: { category: true, restaurant: true },
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.dish.count({ where }),
@@ -70,21 +67,30 @@ export class MenuItemsRepository {
   async findById(id: string) {
     return this.prisma.dish.findUnique({
       where: { id },
-      include: { location: { include: { restaurant: true } } },
+      include: { category: { include: { restaurant: true } } },
     });
   }
 
   async update(id: string, updateMenuItemDto: UpdateMenuItemDto) {
+    const data: Prisma.DishUncheckedUpdateInput = {};
+
+    if (updateMenuItemDto.name !== undefined) data.name = updateMenuItemDto.name;
+    if (updateMenuItemDto.description !== undefined) data.description = updateMenuItemDto.description;
+    if (updateMenuItemDto.price !== undefined) data.price = updateMenuItemDto.price;
+    if (updateMenuItemDto.imageUrl !== undefined) data.imageUrl = updateMenuItemDto.imageUrl;
+    if (updateMenuItemDto.availability !== undefined) data.isAvailable = updateMenuItemDto.availability !== 'unavailable';
+    if (updateMenuItemDto.locationId !== undefined) data.categoryId = updateMenuItemDto.locationId;
+
     return this.prisma.dish.update({
       where: { id },
-      data: updateMenuItemDto,
+      data,
     });
   }
 
   async delete(id: string) {
     return this.prisma.dish.update({
       where: { id },
-      data: { isAvailable: false }, // soft delete simulation
+      data: { isAvailable: false },
     });
   }
 
@@ -93,6 +99,6 @@ export class MenuItemsRepository {
       where: { id },
       select: { id: true },
     });
-    return !!item && item.deletedAt === null;
+    return !!item;
   }
 }

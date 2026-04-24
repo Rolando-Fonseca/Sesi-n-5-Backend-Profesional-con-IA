@@ -42,7 +42,7 @@ export class MenusService {
 
   async findById(id: string) {
     const menu = await this.menusRepository.findById(id);
-    if (!menu || menu.deletedAt) {
+    if (!menu) {
       throw new NotFoundException(`Menu with id ${id} not found`);
     }
     return {

@@ -25,9 +25,7 @@ export class ReviewsRepository {
     const limit = Math.min(parseInt(listReviewsDto.limit || '10'), 100);
     const offset = parseInt(listReviewsDto.offset || '0');
 
-    const where: Prisma.ReviewWhereInput = {
-      // deletedAt: null, (soft deletes not in schema)
-    };
+    const where: Prisma.ReviewWhereInput = {};
 
     if (listReviewsDto.restaurantId) {
       where.restaurantId = listReviewsDto.restaurantId;
@@ -41,12 +39,10 @@ export class ReviewsRepository {
       where.rating = { gte: listReviewsDto.minRating };
     }
 
-    const orderBy: any = {};
-    if (listReviewsDto.sortBy === 'rating') {
-      orderBy.rating = 'desc';
-    } else {
-      orderBy.createdAt = 'desc';
-    }
+    const orderBy: Prisma.ReviewOrderByWithRelationInput =
+      listReviewsDto.sortBy === 'rating'
+        ? { rating: 'desc' }
+        : { createdAt: 'desc' };
 
     const [items, total] = await Promise.all([
       this.prisma.review.findMany({
@@ -77,9 +73,8 @@ export class ReviewsRepository {
   }
 
   async delete(id: string) {
-    return this.prisma.review.update({
+    return this.prisma.review.delete({
       where: { id },
-      data: { isAvailable: false }, // soft delete simulation
     });
   }
 
@@ -88,6 +83,6 @@ export class ReviewsRepository {
       where: { id },
       select: { id: true },
     });
-    return !!review && review.deletedAt === null;
+    return !!review;
   }
 }
