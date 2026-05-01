@@ -1,4 +1,4 @@
-import type { Restaurant, Menu, Pagination } from "@/types";
+import type { Restaurant, Menu, Review, Booking, Pagination } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -21,15 +21,15 @@ class ApiError extends Error {
   }
 }
 
-async function fetchApi<T>(path: string): Promise<T> {
+async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url);
+  const res = await fetch(url, init);
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message =
-      body.message?.join(", ") ?? res.statusText ?? "Error desconocido";
-    throw new ApiError(res.status, message);
+      body.message?.join?.(", ") ?? body.message ?? res.statusText ?? "Error desconocido";
+    throw new ApiError(res.status, String(message));
   }
 
   return res.json() as Promise<T>;
@@ -65,16 +65,43 @@ export async function getRestaurantById(
 
 export async function getMenuByRestaurantId(
   restaurantId: string,
-  filters?: {
-    search?: string;
-    limit?: number;
-    offset?: number;
-  },
+  filters?: { search?: string; limit?: number; offset?: number },
 ): Promise<PaginatedResponse<Menu>> {
   const params = new URLSearchParams({ restaurantId });
   if (filters?.search) params.set("search", filters.search);
   if (filters?.limit) params.set("limit", String(filters.limit));
   if (filters?.offset) params.set("offset", String(filters.offset));
-
   return fetchApi<PaginatedResponse<Menu>>(`/menus?${params.toString()}`);
+}
+
+// ── Reviews ──────────────────────────────────────────────────
+
+export async function getReviewsByRestaurantId(
+  restaurantId: string,
+  filters?: { minRating?: number; limit?: number; offset?: number },
+): Promise<PaginatedResponse<Review>> {
+  const params = new URLSearchParams({ restaurantId });
+  if (filters?.minRating) params.set("minRating", String(filters.minRating));
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  if (filters?.offset) params.set("offset", String(filters.offset));
+  return fetchApi<PaginatedResponse<Review>>(`/reviews?${params.toString()}`);
+}
+
+// ── Bookings ─────────────────────────────────────────────────
+
+export async function createBooking(data: {
+  restaurantId: string;
+  userId: string;
+  reservationDateTime: string;
+  numberOfGuests: number;
+  specialRequests?: string;
+  guestName?: string;
+  guestPhone?: string;
+  guestEmail?: string;
+}): Promise<SingleResponse<Booking>> {
+  return fetchApi<SingleResponse<Booking>>("/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 }

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsNumber, MinLength, MaxLength, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsNumber, MinLength, MaxLength, Min, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -7,7 +7,7 @@ export class CreateMenuItemDto {
     description: 'Location/Menu ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @IsUUID()
+  @IsString()
   locationId: string;
 
   @ApiProperty({

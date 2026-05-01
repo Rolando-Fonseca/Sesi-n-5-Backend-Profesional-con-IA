@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsNumberString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsNumberString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ListBookingsDto {
@@ -7,7 +7,7 @@ export class ListBookingsDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   restaurantId?: string;
 
   @ApiPropertyOptional({
@@ -15,7 +15,7 @@ export class ListBookingsDto {
     example: '223e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   userId?: string;
 
   @ApiPropertyOptional({
