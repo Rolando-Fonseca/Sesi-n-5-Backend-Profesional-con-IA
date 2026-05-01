@@ -4,6 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getRestaurants } from "@/lib/api";
 
+const CUISINE_IMAGES: Record<string, string> = {
+  Mexican: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=80",
+  Asian: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=80",
+  Italian: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80",
+  French: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80",
+  American: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80",
+  Spanish: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400&q=80",
+  Indian: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=80",
+};
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80";
+
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80";
 
@@ -143,31 +154,34 @@ export default async function HomePage() {
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {topRestaurants.map((r) => (
-                <Card
-                  key={r.id}
-                  className="group transition-shadow hover:shadow-lg"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-                          {r.name}
-                        </h3>
-                        <Badge variant="outline" className="mt-2">
-                          {r.cuisineType}
-                        </Badge>
-                      </div>
-                      <span className="flex items-center gap-1 text-sm font-medium">
-                        ★ {r.rating}
-                      </span>
+                <Link key={r.id} href={`/restaurants/${r.id}`} className="group block">
+                  <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+                    <div className="relative h-48 w-full overflow-hidden bg-muted">
+                      <img
+                        src={CUISINE_IMAGES[r.cuisineType] ?? DEFAULT_IMAGE}
+                        alt={r.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <Badge
+                        variant="secondary"
+                        className="absolute top-3 right-3 backdrop-blur-sm"
+                      >
+                        {r.cuisineType}
+                      </Badge>
                     </div>
-                    <Link href={`/restaurants/${r.id}`}>
-                      <Button variant="outline" size="sm" className="mt-4">
-                        Ver detalle
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                    <CardContent className="p-5">
+                      <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                        {r.name}
+                      </h3>
+                      <div className="mt-1 flex items-center gap-1.5 text-sm">
+                        <span className="text-primary">
+                          {"★".repeat(Math.floor(r.rating))}
+                        </span>
+                        <span className="text-muted-foreground">{r.rating}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
             <div className="mt-10 text-center">
