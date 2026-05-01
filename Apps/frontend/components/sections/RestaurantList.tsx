@@ -1,5 +1,6 @@
 import type { Restaurant } from "@/types";
 import { RestaurantCard, RestaurantCardSkeleton } from "./RestaurantCard";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function RestaurantList({ restaurants }: { restaurants: Restaurant[] }) {
   if (restaurants.length === 0) {
@@ -17,25 +18,27 @@ export function RestaurantList({ restaurants }: { restaurants: Restaurant[] }) {
 
 export function RestaurantListEmpty() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <svg
-        className="h-16 w-16 text-muted-foreground/40"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
-        />
-      </svg>
-      <h3 className="mt-4 text-lg font-medium">No hay restaurantes</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Aun no hay restaurantes registrados. Vuelve pronto.
-      </p>
-    </div>
+    <Card className="mx-auto max-w-md">
+      <CardContent className="flex flex-col items-center py-16 text-center">
+        <svg
+          className="h-14 w-14 text-muted-foreground/30"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+          />
+        </svg>
+        <h3 className="mt-4 text-lg font-medium">No hay restaurantes</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aun no hay restaurantes registrados. Vuelve pronto.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

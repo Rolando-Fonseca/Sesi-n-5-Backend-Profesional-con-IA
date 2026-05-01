@@ -1,14 +1,9 @@
 import Link from "next/link";
 import type { Restaurant, Menu } from "@/types";
-
-function getRatingStars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  const stars: string[] = [];
-  for (let i = 0; i < full; i++) stars.push("★");
-  if (half) stars.push("★");
-  return stars.join("");
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function RestaurantDetail({
   restaurant,
@@ -19,11 +14,8 @@ export function RestaurantDetail({
 }) {
   return (
     <div>
-      <Link
-        href="/restaurants"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <span aria-hidden="true">&larr;</span> Volver al catalogo
+      <Link href="/restaurants">
+        <Button variant="ghost" size="sm">&larr; Volver al catalogo</Button>
       </Link>
 
       <div className="mt-6">
@@ -31,12 +23,10 @@ export function RestaurantDetail({
           {restaurant.name}
         </h1>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
-            {restaurant.cuisineType}
-          </span>
+          <Badge variant="outline">{restaurant.cuisineType}</Badge>
           <span className="flex items-center gap-1.5 text-sm">
             <span className="text-primary">
-              {getRatingStars(restaurant.rating)}
+              {"★".repeat(Math.floor(restaurant.rating))}
             </span>
             <span className="text-muted-foreground">{restaurant.rating}</span>
           </span>
@@ -51,16 +41,14 @@ export function RestaurantDetail({
 
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
         {restaurant.phone && (
-          <span className="flex items-center gap-1.5">
-            <span aria-hidden="true">📞</span> {restaurant.phone}
-          </span>
+          <span className="flex items-center gap-1.5">📞 {restaurant.phone}</span>
         )}
         {restaurant.email && (
           <a
             href={`mailto:${restaurant.email}`}
             className="flex items-center gap-1.5 hover:text-foreground transition-colors"
           >
-            <span aria-hidden="true">✉</span> {restaurant.email}
+            ✉ {restaurant.email}
           </a>
         )}
         {restaurant.websiteUrl && (
@@ -70,43 +58,41 @@ export function RestaurantDetail({
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-foreground transition-colors"
           >
-            <span aria-hidden="true">🔗</span> Sitio web
+            🔗 Sitio web
           </a>
         )}
       </div>
 
-      {menus.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold">Ubicaciones</h2>
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold">Ubicaciones</h2>
+        {menus.length > 0 ? (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {menus.map((m) => (
-              <div
-                key={m.id}
-                className="rounded-lg border border-border p-5"
-              >
-                <h3 className="font-semibold">{m.name}</h3>
-                {m.address && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {[m.address, m.city, m.state].filter(Boolean).join(", ")}
-                  </p>
-                )}
-                {m.zipCode && (
-                  <p className="text-sm text-muted-foreground">
-                    C.P. {m.zipCode}
-                  </p>
-                )}
-              </div>
+              <Card key={m.id}>
+                <CardContent className="p-5">
+                  <h3 className="font-semibold">{m.name}</h3>
+                  {m.address && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[m.address, m.city, m.state]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  )}
+                  {m.zipCode && (
+                    <p className="text-sm text-muted-foreground">
+                      C.P. {m.zipCode}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </section>
-      ) : (
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold">Ubicaciones</h2>
+        ) : (
           <p className="mt-4 text-sm text-muted-foreground">
             Este restaurante aun no tiene ubicaciones registradas.
           </p>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }
@@ -114,25 +100,25 @@ export function RestaurantDetail({
 export function RestaurantDetailSkeleton() {
   return (
     <div>
-      <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+      <Skeleton className="h-4 w-40" />
       <div className="mt-6 space-y-4">
-        <div className="h-10 w-2/3 animate-pulse rounded bg-muted" />
+        <Skeleton className="h-10 w-2/3" />
         <div className="flex gap-3">
-          <div className="h-7 w-24 animate-pulse rounded-full bg-muted" />
-          <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
-        <div className="h-5 w-full animate-pulse rounded bg-muted" />
-        <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-3/4" />
         <div className="flex gap-6 mt-4">
-          <div className="h-4 w-28 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-32" />
         </div>
       </div>
       <div className="mt-12 space-y-4">
-        <div className="h-8 w-40 animate-pulse rounded bg-muted" />
+        <Skeleton className="h-8 w-40" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="h-24 animate-pulse rounded-lg bg-muted" />
-          <div className="h-24 animate-pulse rounded-lg bg-muted" />
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
         </div>
       </div>
     </div>

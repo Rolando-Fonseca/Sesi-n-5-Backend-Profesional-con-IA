@@ -1,5 +1,8 @@
 import Link from "next/link";
 import type { Restaurant } from "@/types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CUISINE_IMAGES: Record<string, string> = {
   Mexican:
@@ -21,39 +24,32 @@ const CUISINE_IMAGES: Record<string, string> = {
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80";
 
-function getRatingStars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  const stars: string[] = [];
-  for (let i = 0; i < full; i++) stars.push("★");
-  if (half) stars.push("★");
-  return stars.join("");
-}
-
 export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
-  const image =
-    CUISINE_IMAGES[restaurant.cuisineType] ?? DEFAULT_IMAGE;
+  const image = CUISINE_IMAGES[restaurant.cuisineType] ?? DEFAULT_IMAGE;
 
   return (
     <Link href={`/restaurants/${restaurant.id}`} className="group block">
-      <article className="overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-lg">
+      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
         <div className="relative h-48 w-full overflow-hidden bg-muted">
           <img
             src={image}
             alt={restaurant.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
+          <Badge
+            variant="secondary"
+            className="absolute top-3 right-3 backdrop-blur-sm"
+          >
             {restaurant.cuisineType}
-          </span>
+          </Badge>
         </div>
-        <div className="p-5">
+        <CardContent className="p-5">
           <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">
             {restaurant.name}
           </h2>
           <div className="mt-1 flex items-center gap-1.5 text-sm">
             <span className="text-primary">
-              {getRatingStars(restaurant.rating)}
+              {"★".repeat(Math.floor(restaurant.rating))}
             </span>
             <span className="text-muted-foreground">{restaurant.rating}</span>
           </div>
@@ -62,21 +58,21 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
               {restaurant.description}
             </p>
           )}
-        </div>
-      </article>
+        </CardContent>
+      </Card>
     </Link>
   );
 }
 
 export function RestaurantCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
-      <div className="h-48 w-full animate-pulse bg-muted" />
-      <div className="p-5 space-y-3">
-        <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-full animate-pulse rounded bg-muted" />
-      </div>
-    </div>
+    <Card className="overflow-hidden">
+      <Skeleton className="h-48 w-full rounded-none" />
+      <CardContent className="p-5 space-y-3">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-4 w-full" />
+      </CardContent>
+    </Card>
   );
 }
